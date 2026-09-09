@@ -1,0 +1,12 @@
+name: uno
+
+on:
+  workflow_dispatch:
+
+
+jobs:
+  uno:
+    name: Uno
+    runs-on: ubuntu-latest
+
+    
