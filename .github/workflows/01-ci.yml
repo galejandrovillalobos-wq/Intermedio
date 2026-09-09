@@ -1,10 +1,5 @@
-# Pipeline de integración continua del workshop.
-#
-# Un solo job con pasos en orden. Es deliberadamente simple: si tu primer
-# contacto con Actions es un pipeline de cuatro jobs encadenados, vas a estar
-# depurando YAML en lugar de entender el modelo de ejecución.
-#
-# En el laboratorio 04 le agregas un segundo job y aprendes `needs`.
+# Estado esperado de .github/workflows/01-ci.yml al terminar el laboratorio 03.
+# Cambios respecto al 02: se agregan artefactos y resumen del run.
 
 name: 01 - CI
 
@@ -26,8 +21,6 @@ env:
   DOTNET_NOLOGO: 'true'
   DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
 
-# Si haces varios push seguidos a la misma rama, cancela el run anterior.
-# Ahorra minutos y evita que revises logs de una versión vieja del código.
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -36,7 +29,6 @@ jobs:
   build-y-test:
     name: Build y test
     runs-on: ubuntu-latest
-
     steps:
       - name: Descargar el código al runner
         uses: actions/checkout@v7
@@ -53,4 +45,39 @@ jobs:
         run: dotnet build --configuration Release --no-restore
 
       - name: Ejecutar pruebas
-        run: dotnet test --configuration Release --no-build --verbosity normal
+        run: |
+          dotnet test \
+            --configuration Release \
+            --no-build \
+            --logger "trx;LogFileName=resultados.trx" \
+            --results-directory ./resultados
+
+      # if: always() hace que el artefacto se suba incluso si las pruebas
+      # fallaron. Es justo cuando más necesitas ver el reporte.
+      - name: Publicar resultados de pruebas
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: resultados-de-pruebas
+          path: ./resultados
+          retention-days: 5
+          if-no-files-found: error
+
+      - name: Escribir el resumen del run
+        if: always()
+        run: |
+          TRX=$(find ./resultados -name '*.trx' | head -1)
+          TOTAL=$(grep -o 'total="[0-9]*"' "$TRX" | head -1 | grep -o '[0-9]*')
+          PASADAS=$(grep -o 'passed="[0-9]*"' "$TRX" | head -1 | grep -o '[0-9]*')
+          FALLIDAS=$(grep -o 'failed="[0-9]*"' "$TRX" | head -1 | grep -o '[0-9]*')
+          {
+            echo "### Resultado de las pruebas"
+            echo ""
+            echo "| Métrica | Valor |"
+            echo "|---------|-------|"
+            echo "| Total    | ${TOTAL:-0} |"
+            echo "| Pasadas  | ${PASADAS:-0} |"
+            echo "| Fallidas | ${FALLIDAS:-0} |"
+            echo ""
+            echo "Commit: \`${GITHUB_SHA:0:7}\` en \`$GITHUB_REF_NAME\`"
+          } >> "$GITHUB_STEP_SUMMARY"
