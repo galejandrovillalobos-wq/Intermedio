@@ -1,0 +1,24 @@
+# Primer workflow del laboratorio.
+#
+# No compila nada. Solo existe para que veas la anatomía mínima de un workflow
+# y para que entiendas dónde vive cada pieza antes de agregar complejidad.
+#
+# Se dispara únicamente de forma manual (workflow_dispatch), así que no consume
+# minutos hasta que tú lo ejecutes desde la pestaña Actions.
+
+name: uno
+
+on:
+  workflow_dispatch:
+
+# Least privilege. Este workflow no lee ni escribe nada del repositorio,
+# así que le quitamos todos los permisos al GITHUB_TOKEN.
+permissions: {}
+
+jobs:
+  saludo:
+    name: Saludo
+    runs-on: ubuntu-latest
+    steps:
+      - name: Imprimir un mensaje
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 #V9.0.0
