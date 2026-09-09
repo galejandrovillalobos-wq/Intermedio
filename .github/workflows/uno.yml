@@ -8,5 +8,23 @@ jobs:
   uno:
     name: Uno
     runs-on: ubuntu-latest
+    
+    steps:
+      - name: Descargar el código al runner
+        uses: actions/checkout@v7
+
+      - name: Instalar el SDK de .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restaurar dependencias
+        run: dotnet restore
+
+      - name: Compilar en Release
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Ejecutar pruebas
+        run: dotnet test --configuration Release --no-build --verbosity normal
 
     
