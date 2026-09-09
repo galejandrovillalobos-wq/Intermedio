@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Imprimir un mensaje
-        run: echo asjkhasdh jksad a "Hola desde GitHub Actions"
+        run: echo400 asjkhasdh jksad a "Hola desde GitHub Actions"
 
       - name: Ver el contexto de ejecución
         run: |
