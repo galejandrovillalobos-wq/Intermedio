@@ -1,7 +1,9 @@
 name: uno
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - 'lab/**'
 
 
 jobs:
